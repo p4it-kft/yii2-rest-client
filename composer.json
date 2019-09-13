@@ -1,0 +1,36 @@
+{
+  "name": "p4it-kft/yii2-rest-client",
+  "description": "Yii2 REST client helper classes",
+  "keywords": [
+    "rest",
+    "client",
+    "yii2"
+  ],
+  "type": "yii2-extension",
+  "license": "MIT",
+  "minimum-stability": "stable",
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://asset-packagist.org"
+    }
+  ],
+  "config": {
+    "preferred-install": "dist",
+    "process-timeout": 1800
+  },
+  "require": {
+    "php": ">=7.1.0",
+    "yiisoft/yii2": "~2.0",
+    "p4it-kft/guzzle": "@dev-master"
+  },
+  "require-dev": {
+    "roave/security-advisories": "dev-master",
+    "phpunit/phpunit": "4.8.36"
+  },
+  "autoload": {
+    "psr-4": {
+      "p4it\\rest\\client\\": "src"
+    }
+  }
+}
