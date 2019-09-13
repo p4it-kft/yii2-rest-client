@@ -12,13 +12,13 @@ use yii\base\Model;
  * Time: 15:36
  */
 
-abstract class RestModel extends Model {
+abstract class ActiveResource extends Model {
 
     /**
-     * @return RestQuery
+     * @return ActiveResourceQuery
      */
     public static function find() {
-        return new RestQuery(static::class);
+        return new ActiveResourceQuery(static::class);
     }
 
     /**

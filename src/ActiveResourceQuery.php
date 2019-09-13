@@ -9,7 +9,7 @@ use yii\base\Component;
  * Time: 15:41
  */
 
-class RestQuery extends Component {
+class ActiveResourceQuery extends Component {
 
     public $filter;
 
