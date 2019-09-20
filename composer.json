@@ -22,11 +22,12 @@
   "require": {
     "php": ">=7.1.0",
     "yiisoft/yii2": "~2.0",
-    "p4it-kft/guzzle": "@dev-master"
+    "yiisoft/yii2-httpclient": "~2.0.0"
   },
   "require-dev": {
     "roave/security-advisories": "dev-master",
-    "phpunit/phpunit": "4.8.36"
+    "phpunit/phpunit": "7.5.14",
+    "codeception/phpunit-wrapper": "~7.0"
   },
   "autoload": {
     "psr-4": {

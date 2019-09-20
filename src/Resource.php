@@ -1,8 +1,10 @@
 <?php
 namespace p4it\rest\client;
 
+use GuzzleHttp\ClientInterface;
 use Yii;
 use yii\base\InvalidConfigException;
+use yii\base\Model;
 use yii\helpers\Inflector;
 use yii\helpers\StringHelper;
 use yii\httpclient\Client;
@@ -11,9 +13,11 @@ use yii\httpclient\Client;
  * User: papppeter
  * Date: 13/09/2019
  * Time: 15:36
+ *
+ * ezek a sima expand-ok nem aktívok, nem lehet külön hívni őket.
  */
 
-abstract class ActiveResource extends BaseActiveResource {
+abstract class Resource extends Model {
 
     /**
      * Declares the name of the resource.
@@ -35,10 +39,10 @@ abstract class ActiveResource extends BaseActiveResource {
     }
 
 
+
     /**
      * {@inheritdoc}
      * @return static|null ActiveResource instance matching the condition, or `null` if nothing matches.
-     * @throws InvalidConfigException
      */
     public static function findOne($condition)
     {
@@ -48,7 +52,6 @@ abstract class ActiveResource extends BaseActiveResource {
     /**
      * {@inheritdoc}
      * @return static[] an array of ActiveResource instances, or an empty array if nothing matches.
-     * @throws InvalidConfigException
      */
     public static function findAll($condition)
     {
@@ -61,9 +64,50 @@ abstract class ActiveResource extends BaseActiveResource {
      */
     public static function getClient() {
         /** @var Client $client */
-        $client = Yii::$app->get('httpClient');
+        $client = Yii::$app->get('restClient');
 
         return $client;
+    }
+
+    /**
+     * Updates records using the provided attribute values and conditions.
+     *
+     * For example, to change the status to be 1 for all customers whose status is 2:
+     *
+     * ```php
+     * Customer::updateAll(['status' => 1], ['status' => '2']);
+     * ```
+     *
+     * @param array $attributes attribute values (name-value pairs) to be saved for the record.
+     * Unlike [[update()]] these are not going to be validated.
+     * @param array $condition the condition that matches the records that should get updated.
+     * Please refer to [[QueryInterface::where()]] on how to specify this parameter.
+     * An empty condition will match all records.
+     * @return int the number of rows updated
+     */
+    public static function updateAll($attributes, $condition = null)
+    {
+        // TODO: Implement updateAll() method.
+    }
+
+    /**
+     * Deletes records using the provided conditions.
+     * WARNING: If you do not specify any condition, this method will delete ALL rows in the table.
+     *
+     * For example, to delete all customers whose status is 3:
+     *
+     * ```php
+     * Customer::deleteAll([status = 3]);
+     * ```
+     *
+     * @param array $condition the condition that matches the records that should get deleted.
+     * Please refer to [[QueryInterface::where()]] on how to specify this parameter.
+     * An empty condition will match all records.
+     * @return int the number of rows deleted
+     */
+    public static function deleteAll($condition = null)
+    {
+        // TODO: Implement deleteAll() method.
     }
 
     /**
