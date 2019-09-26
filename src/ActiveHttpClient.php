@@ -78,4 +78,18 @@ class ActiveHttpClient extends Component {
         return $url;
     }
 
+    public function buildInsertUrl(ActiveResourceQuery $resourceQuery) {
+        /* @var $modelClass ActiveResource */
+        $modelClass = $resourceQuery->modelClass;
+
+        $url = [
+            $modelClass::resourceName()
+        ];
+
+        //debug session
+        $url['XDEBUG_SESSION_START'] = '14098';
+
+        return $url;
+    }
+
 }

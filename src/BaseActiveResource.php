@@ -853,12 +853,9 @@ abstract class BaseActiveResource extends Model implements ActiveResourceInterfa
             // we do not check the return value of deleteAll() because it's possible
             // the record is already deleted in the database and thus the method will return 0
             $condition = $this->getOldPrimaryKey(true);
-            $lock = $this->optimisticLock();
-            if ($lock !== null) {
-                $condition[$lock] = $this->$lock;
-            }
-            $result = static::deleteAll($condition);
-            if ($lock !== null && !$result) {
+
+            $result = static::deleteOne($condition);
+            if (!$result) {
                 throw new StaleObjectException('The object being deleted is outdated.');
             }
             $this->_oldAttributes = null;

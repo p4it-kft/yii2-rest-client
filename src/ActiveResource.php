@@ -111,10 +111,71 @@ abstract class ActiveResource extends BaseActiveResource {
      * @param array $attributes list of attributes that need to be saved. Defaults to `null`,
      * meaning all attributes that are loaded from DB will be saved.
      * @return bool whether the attributes are valid and the record is inserted successfully.
+     * @throws BadResponseException
+     * @throws InvalidConfigException
+     * @throws \yii\httpclient\Exception
      */
     public function insert($runValidation = true, $attributes = null)
     {
-        // TODO: Implement insert() method.
+        if ($runValidation && !$this->validate($attributes)) {
+            Yii::info('Model not inserted due to validation error.', __METHOD__);
+            return false;
+        }
+
+        return $this->insertInternal($attributes);
+    }
+
+
+    /**
+     * Inserts an ActiveRecord into DB without considering transaction.
+     * @param array $attributes list of attributes that need to be saved. Defaults to `null`,
+     * meaning all attributes that are loaded from DB will be saved.
+     * @return bool whether the record is inserted successfully.
+     * @throws BadResponseException
+     * @throws InvalidConfigException
+     * @throws \yii\httpclient\Exception
+     */
+    protected function insertInternal($attributes = null)
+    {
+        if (!$this->beforeSave(true)) {
+            return false;
+        }
+        $values = $this->getDirtyAttributes($attributes);
+
+        $client = static::getClient();
+        $request = $client->createRequest();
+        $request->setMethod('POST');
+        $request->setData($values);
+
+        $query = static::find();
+        $request->setUrl($client->buildInsertUrl($query));
+        $response = $request->send();
+        if (!$response->isOk) {
+            if($response->getStatusCode() === '422')  { //validation error
+                //fixme this need to have an error getter.
+                $content = $response->getData()->content;
+                foreach ($content as $error) {
+                    $this->addError($error['field'], $error['message']);
+                }
+                return false;
+            } else {
+                throw new BadResponseException($response, $response->getContent(), $response->getStatusCode());
+            }
+        }
+        /** @var ActiveResponse $data */
+        $data = $response->getData();
+
+        foreach (static::primaryKey() as $name) {
+            $id = $data->content[$name]??null;
+            $this->setAttribute($name, $id);
+            $values[$name] = $id;
+        }
+
+        $changedAttributes = array_fill_keys(array_keys($values), null);
+        $this->setOldAttributes($values);
+        $this->afterSave(true, $changedAttributes);
+
+        return true;
     }
 
     /**
@@ -142,5 +203,51 @@ abstract class ActiveResource extends BaseActiveResource {
         $data = $response->getData();
 
         return $data->content;
+    }
+
+    public function delete()
+    {
+        return $this->deleteInternal();
+    }
+
+    /**
+     * Deletes an ActiveRecord without considering transaction.
+     * @return int|false the number of rows deleted, or `false` if the deletion is unsuccessful for some reason.
+     * Note that it is possible the number of rows deleted is 0, even though the deletion execution is successful.
+     * @throws BadResponseException
+     */
+    protected function deleteInternal()
+    {
+        if (!$this->beforeDelete()) {
+            return false;
+        }
+
+        // we do not check the return value of deleteAll() because it's possible
+        // the record is already deleted in the database and thus the method will return 0
+        $condition = $this->getOldPrimaryKey(true);
+        $result = static::deleteOne($condition);
+        if (!$result) {
+            throw new StaleObjectException('The object being deleted is outdated.');
+        }
+        $this->setOldAttributes(null);
+        $this->afterDelete();
+
+        return $result;
+    }
+
+    public function deleteOne(array $condition)
+    {
+        $client = static::getClient();
+        $request = $client->createRequest();
+        $request->setMethod('DELETE');
+
+        $query = static::find();
+        $request->setUrl($client->buildUpdateOneUrl($query, $condition));
+        $response = $request->send();
+        if (!$response->isOk) {
+            throw new BadResponseException($response, $response->getContent(), $response->getStatusCode());
+        }
+
+        return true;
     }
 }

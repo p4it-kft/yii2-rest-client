@@ -172,8 +172,6 @@ class ActiveResourceTest extends TestCase
         self::assertIsArray($item, 'Wrong response');
     }
 
-
-
     /**
      * Testing update
      */
@@ -191,5 +189,50 @@ class ActiveResourceTest extends TestCase
         $saved = $item->save();
 
         self::assertTrue($saved, 'Could not save');
+    }
+
+    /**
+     * Testing insert
+     */
+    public function testInsert()
+    {
+        $item = new RoomType([
+            'name' => 'test',
+            'color_class' => 'color',
+            'min_persons' => 1,
+            'max_persons' => 4,
+            'is_sellable' => 0,
+            'short_name' => 'short',
+        ]);
+
+        $saved = $item->save();
+
+        self::assertTrue($saved, 'Could not save');
+
+        $deleted = $item->delete();
+
+        self::assertTrue($deleted, 'Could not delete');
+    }
+
+    /**
+     * Testing validation error
+     */
+    public function testValidationError()
+    {
+        $item = new RoomType([
+            'name' => 'test',
+            'color_class' => 'color',
+            'min_persons' => 1,
+            'max_persons' => 4,
+            'is_sellable' => 0,
+        ]);
+
+        $saved = $item->save();
+
+        self::assertTrue($saved, 'Could not save');
+
+        $deleted = $item->delete();
+
+        self::assertTrue($deleted, 'Could not delete');
     }
 }
