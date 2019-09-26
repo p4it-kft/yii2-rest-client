@@ -3,7 +3,10 @@ namespace p4it\rest\client\tests\unit;
 
 use Codeception\PHPUnit\TestCase;
 use p4it\rest\client\BadResponseException;
+use tests\resources\File;
 use tests\resources\PhotoRoomSlotHasFile;
+use tests\resources\Room;
+use tests\resources\RoomType;
 use Yii;
 use yii\httpclient\Client;
 
@@ -50,7 +53,7 @@ class ActiveResourceTest extends TestCase
     public function testOne()
     {
 
-        $model = PhotoRoomSlotHasFile::findOne(['AND', 'room_slot_id' => 165270, 'file_history_id' => 79919]);
+        $model = PhotoRoomSlotHasFile::findOne(['AND', 'room_slot_id' => 112235, 'file_history_id' => 68472]);
         self::assertInstanceOf(PhotoRoomSlotHasFile::class, $model, 'Wrong instance received');
     }
 
@@ -90,6 +93,8 @@ class ActiveResourceTest extends TestCase
         foreach (PhotoRoomSlotHasFile::find()->where(['updated_at' => ['gt' => '2019-08-10 00:00:00']])->batch(5) as $items) {
             self::assertIsArray($items, 'We received not an array');
             self::assertInstanceOf(PhotoRoomSlotHasFile::class, $items[0], 'Wrong instance');
+
+            break;
         };
 
         self::assertNotEmpty($items, 'No results received');
@@ -105,6 +110,8 @@ class ActiveResourceTest extends TestCase
         foreach (PhotoRoomSlotHasFile::find()->where(['updated_at' => ['gt' => '2019-08-10 00:00:00']])->each(5) as $item) {
             self::assertIsNotArray($item, 'We received an array');
             self::assertInstanceOf(PhotoRoomSlotHasFile::class, $item, 'Wrong instance');
+
+            break;
         };
 
         self::assertNotEmpty($item, 'No results received');
@@ -122,11 +129,67 @@ class ActiveResourceTest extends TestCase
     }
 
     /**
-     * Testing batch
+     * Testing expand
      */
     public function testExpand()
     {
         $item = PhotoRoomSlotHasFile::find()->expand(['file'])->where(['updated_at' => ['gt' => '2019-08-10 00:00:00']])->one();
 
+        self::assertInstanceOf(File::class, $item->file, 'Wrong instance');
+
+        $item = RoomType::find()->expand(['rooms'])->one();
+
+        self::assertInstanceOf(Room::class, $item->rooms[0], 'Wrong instance');
+
+    }
+
+    /**
+     * Testing relations
+     */
+    public function testRelations()
+    {
+        $item = RoomType::find()->one();
+        self::assertInstanceOf(Room::class, $item->rooms[0], 'Wrong instance');
+
+        $item = Room::find()->one();
+        self::assertInstanceOf(RoomType::class, $item->roomType, 'Wrong instance');
+    }
+
+    /**
+     * Testing Count, exists, asArray
+     */
+    public function testCountExistsAsArray()
+    {
+        $count = RoomType::find()->count();
+        self::assertIsInt($count, 'Wrong response');
+        self::assertGreaterThan(1, $count, 'We received a wrong count');
+
+        $bool = Room::find()->exists();
+        self::assertIsBool($bool, 'Wrong response');
+        self::assertTrue($bool, 'Wrong response');
+
+        $item = Room::find()->asArray()->one();
+        self::assertIsArray($item, 'Wrong response');
+    }
+
+
+
+    /**
+     * Testing update
+     */
+    public function testUpdate()
+    {
+        $item = RoomType::find()->one();
+        self::assertInstanceOf(RoomType::class, $item, 'Wrong instance');
+
+        $item->is_sellable = 0;
+        $saved = $item->save();
+
+        self::assertTrue($saved, 'Could not save');
+
+        $item->is_sellable = 1;
+        $saved = $item->save();
+
+        self::assertTrue($saved, 'Could not save');
     }
 }

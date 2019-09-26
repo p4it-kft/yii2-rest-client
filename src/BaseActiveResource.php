@@ -13,6 +13,8 @@ use yii\base\Model;
 use yii\base\ModelEvent;
 use yii\base\NotSupportedException;
 use yii\base\UnknownMethodException;
+use yii\db\AfterSaveEvent;
+use yii\db\StaleObjectException;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -771,21 +773,13 @@ abstract class BaseActiveResource extends Model implements ActiveResourceInterfa
             return 0;
         }
         $condition = $this->getOldPrimaryKey(true);
-        $lock = $this->optimisticLock();
-        if ($lock !== null) {
-            $values[$lock] = $this->$lock + 1;
-            $condition[$lock] = $this->$lock;
-        }
+
         // We do not check the return value of updateAll() because it's possible
         // that the UPDATE statement doesn't change anything and thus returns 0.
-        $rows = static::updateAll($values, $condition);
+        $rows = static::updateOne($values, $condition);
 
-        if ($lock !== null && !$rows) {
+        if (!$rows) {
             throw new StaleObjectException('The object being updated is outdated.');
-        }
-
-        if (isset($values[$lock])) {
-            $this->$lock = $values[$lock];
         }
 
         $changedAttributes = [];

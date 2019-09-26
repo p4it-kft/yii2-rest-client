@@ -2,6 +2,9 @@
 namespace p4it\rest\client;
 
 use Generator;
+use InvalidArgumentException;
+use ReflectionException;
+use ReflectionMethod;
 use yii\base\InvalidConfigException;
 use yii\db\Connection;
 use yii\httpclient\Client;
@@ -17,6 +20,17 @@ use yii\httpclient\Request;
 class ActiveResourceQuery extends ResourceQuery implements ActiveResourceQueryInterface {
     use ActiveResourceQueryTrait;
     use ActiveResourceRelationTrait;
+
+    /**
+     * @event Event an event that is triggered when the query is initialized via [[init()]].
+     */
+    const EVENT_INIT = 'init';
+
+    /**
+     * @var string the url statement to be executed for retrieving AR records.
+     * This is set by [[ActiveRecord::findBySql()]].
+     */
+    public $url;
 
     /**
      * @var string
@@ -61,6 +75,18 @@ class ActiveResourceQuery extends ResourceQuery implements ActiveResourceQueryIn
     }
 
     /**
+     * Initializes the object.
+     * This method is called at the end of the constructor. The default implementation will trigger
+     * an [[EVENT_INIT]] event. If you override this method, make sure you call the parent implementation at the end
+     * to ensure triggering of the event.
+     */
+    public function init()
+    {
+        parent::init();
+        $this->trigger(self::EVENT_INIT);
+    }
+
+    /**
      * Starts a batch query.
      *
      * A batch query supports fetching data in batches, which can keep the memory usage under a limit.
@@ -85,7 +111,7 @@ class ActiveResourceQuery extends ResourceQuery implements ActiveResourceQueryIn
 
         $request = $this->createRequest($client);
 
-        foreach ($this->getItems($request) as $items) {
+        foreach ($this->getItems($request) as [$items]) {
             yield $this->populate($items);
         }
 
@@ -212,32 +238,15 @@ class ActiveResourceQuery extends ResourceQuery implements ActiveResourceQueryIn
             $client = $modelClass::getClient();
         }
 
+        if ($this->url === null) {
+            //todo url builder
+            $url = $client->buildUrl($this);
+        } else {
+            $url = $this->url;
+        }
+
         $request = $client->createRequest();
         $request->setMethod('GET');
-        $url = [
-            $modelClass::resourceName()
-        ];
-
-        if($this->select) {
-            $url[$this->fieldParam] = implode(',',$this->select);
-        }
-
-        if($this->where) {
-            $url[$this->filterParam] = $this->where;
-        }
-
-        if($this->perPage) {
-            $url[$this->perPageParam] = $this->perPage;
-        }
-
-        if($this->expand) {
-            $url[$this->expandParam] = implode(',', $this->expand);
-        }
-
-        if($this->orderBy) {
-            $url[$this->sortParam] = implode(',', $this->orderBy);
-        }
-
         $request->setUrl($url);
 
         return $request;
@@ -262,42 +271,69 @@ class ActiveResourceQuery extends ResourceQuery implements ActiveResourceQueryIn
      */
     public function asArray($value = true)
     {
-        // TODO: Implement asArray() method.
+        $this->asArray = $value;
+
+        return $this;
     }
 
     /**
      * Finds the related records for the specified primary record.
      * This method is invoked when a relation of an ActiveRecord is being accessed in a lazy fashion.
      * @param string $name the relation name
-     * @param ActiveRecordInterface $model the primary model
+     * @param ActiveResourceInterface $model the primary model
      * @return mixed the related record(s)
+     * @throws BadResponseException
+     * @throws Exception
+     * @throws InvalidConfigException
+     * @throws ReflectionException
      */
     public function findFor($name, $model)
     {
-        // TODO: Implement findFor() method.
+        if (method_exists($model, 'get' . $name)) {
+            $method = new ReflectionMethod($model, 'get' . $name);
+            $realName = lcfirst(substr($method->getName(), 3));
+            if ($realName !== $name) {
+                throw new InvalidArgumentException('Relation names are case sensitive. ' . get_class($model) . " has a relation named \"$realName\" instead of \"$name\".");
+            }
+        }
+
+        return $this->multiple ? $this->all() : $this->one();
     }
 
     /**
      * Returns the number of records.
      * @param string $q the COUNT expression. Defaults to '*'.
-     * @param Connection $db the database connection used to execute the query.
+     * @param Client $client the database connection used to execute the query.
      * If this parameter is not given, the `db` application component will be used.
      * @return int number of records.
+     * @throws BadResponseException
+     * @throws Exception
+     * @throws InvalidConfigException
      */
-    public function count($q = '*', $db = null)
+    public function count($q = '*', $client = null)
     {
-        // TODO: Implement count() method.
+        $this->perPage = 1;
+        $request = $this->createRequest($client);
+        foreach ($this->getItems($request) as [$item, $count]) {
+            //bigint???
+            return (int)$count;
+        }
+
+        return 0;
     }
 
     /**
      * Returns a value indicating whether the query result contains any row of data.
-     * @param Connection $db the database connection used to execute the query.
+     * @param Client $client the rest api used to execute the query.
      * If this parameter is not given, the `db` application component will be used.
      * @return bool whether the query result contains any row of data.
+     * @throws BadResponseException
+     * @throws Exception
+     * @throws InvalidConfigException
      */
-    public function exists($db = null)
+    public function exists($client = null)
     {
-        // TODO: Implement exists() method.
+        return (bool)$this->count();
     }
 
     /**
@@ -329,7 +365,8 @@ class ActiveResourceQuery extends ResourceQuery implements ActiveResourceQueryIn
             $data = $response->getData();
             $request->setFullUrl($data->linkNext);
 
-            yield $data->items;
+            //i am not sure about this
+            yield [$data->items, $data->totalCount, $data->currentPage, $data->perPage, $data->pageCount];
         } while ($data->linkNext);
     }
 

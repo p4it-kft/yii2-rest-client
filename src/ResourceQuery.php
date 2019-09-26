@@ -2,10 +2,7 @@
 namespace p4it\rest\client;
 
 use yii\base\Component;
-use yii\db\BatchQueryResult;
-use yii\db\Connection;
-use yii\db\QueryInterface;
-use yii\httpclient\Request;
+use yii\httpclient\Client;
 
 /**
  * User: papppeter
@@ -30,13 +27,13 @@ class ResourceQuery extends Component implements ResourceQueryInterface {
     
     /**
      * Executes query and returns a single row of result.
-     * @param Connection $db the DB connection used to create the DB command.
+     * @param Client $client the DB connection used to create the DB command.
      * If `null`, the DB connection returned by [[ActiveQueryTrait::$modelClass|modelClass]] will be used.
      * @return ActiveResourceInterface|array|null a single row of query result. Depending on the setting of [[asArray]],
      * the query result may be either an array or an ActiveRecord object. `null` will be returned
      * if the query results in nothing.
      */
-    public function one($db = null)
+    public function one($client = null)
     {
         // TODO: Implement one() method.
     }
@@ -55,11 +52,11 @@ class ResourceQuery extends Component implements ResourceQueryInterface {
 
     /**
      * Executes the query and returns all results as an array.
-     * @param Connection $db the database connection used to execute the query.
+     * @param Client $client the rest api used to execute the query.
      * If this parameter is not given, the `db` application component will be used.
      * @return array the query results. If the query results in nothing, an empty array will be returned.
      */
-    public function all($db = null)
+    public function all($client = null)
     {
         return [];
     }
@@ -67,22 +64,22 @@ class ResourceQuery extends Component implements ResourceQueryInterface {
     /**
      * Returns the number of records.
      * @param string $q the COUNT expression. Defaults to '*'.
-     * @param Connection $db the database connection used to execute the query.
+     * @param Client $client the rest api used to execute the query.
      * If this parameter is not given, the `db` application component will be used.
      * @return int number of records.
      */
-    public function count($q = '*', $db = null)
+    public function count($q = '*', $client = null)
     {
         // TODO: Implement count() method.
     }
 
     /**
      * Returns a value indicating whether the query result contains any row of data.
-     * @param Connection $db the database connection used to execute the query.
+     * @param Client $client the rest api used to execute the query.
      * If this parameter is not given, the `db` application component will be used.
      * @return bool whether the query result contains any row of data.
      */
-    public function exists($db = null)
+    public function exists($client = null)
     {
         // TODO: Implement exists() method.
     }

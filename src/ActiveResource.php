@@ -56,14 +56,41 @@ abstract class ActiveResource extends BaseActiveResource {
     }
 
     /**
-     * @return Client
+     * @return ActiveHttpClient
      * @throws InvalidConfigException
      */
     public static function getClient() {
-        /** @var Client $client */
+        /** @var ActiveHttpClient $client */
         $client = Yii::$app->get('httpClient');
 
         return $client;
+    }
+
+
+    /**
+     * Creates an [[ActiveQuery]] instance with a given SQL statement.
+     *
+     * Note that because the SQL statement is already specified, calling additional
+     * query modification methods (such as `where()`, `order()`) on the created [[ActiveQuery]]
+     * instance will have no effect. However, calling `with()`, `asArray()` or `indexBy()` is
+     * still fine.
+     *
+     * Below is an example:
+     *
+     * ```php
+     * $customers = Customer::findBySql('SELECT * FROM customer')->all();
+     * ```
+     *
+     * @param string $sql the SQL statement to be executed
+     * @param array $params parameters to be bound to the SQL statement during execution.
+     * @return ActiveResourceQuery the newly created [[ActiveResourceQuery]] instance
+     */
+    public static function findByUrl($url)
+    {
+        $query = static::find();
+        $query->url = $url;
+
+        return $query;
     }
 
     /**
@@ -88,5 +115,32 @@ abstract class ActiveResource extends BaseActiveResource {
     public function insert($runValidation = true, $attributes = null)
     {
         // TODO: Implement insert() method.
+    }
+
+    /**
+     * @param array $attributes
+     * @param array $condition
+     * @return array|int
+     * @throws BadResponseException
+     * @throws InvalidConfigException
+     * @throws \yii\httpclient\Exception
+     */
+    public static function updateOne($attributes, array $condition)
+    {
+        $client = static::getClient();
+        $request = $client->createRequest();
+        $request->setMethod('PATCH');
+        $request->setData($attributes);
+
+        $query = static::find();
+        $request->setUrl($client->buildUpdateOneUrl($query, $condition));
+        $response = $request->send();
+        if (!$response->isOk) {
+            throw new BadResponseException($response, $response->getContent(), $response->getStatusCode());
+        }
+        /** @var ActiveResponse $data */
+        $data = $response->getData();
+
+        return $data->content;
     }
 }
