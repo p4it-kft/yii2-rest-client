@@ -568,7 +568,11 @@ trait ActiveResourceRelationTrait
             $values = array_merge($scalarValues, $nonScalarValues);
         }
 
-        $this->andWhere(['in', $attributes, $values]);
+        foreach ($attributes as $key => $attribute) {
+            //"id": {"in": [2, 5, 9]},
+            $this->andWhere([$attribute => ['in' => [$values[$key]]]]);
+        }
+
     }
 
     /**

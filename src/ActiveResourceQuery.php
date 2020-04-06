@@ -176,14 +176,12 @@ class ActiveResourceQuery extends ResourceQuery implements ActiveResourceQueryIn
             return [];
         }
 
+        if($this->isPopulated($rows)) {
+            return $rows;
+        }
+
         $models = $this->createModels($rows);
 
-        //ez meg az expand nem kéne hogy ugyanaz legyen
-//        if ($this->with) {
-//            $this->findWith($this->with, $models);
-//        }
-
-        //ez meg az expand nem kéne hogy ugyanaz legyen
         if ($this->expand) {
             $this->findExpand($this->expand, $models, $rows);
         }
@@ -221,6 +219,23 @@ class ActiveResourceQuery extends ResourceQuery implements ActiveResourceQueryIn
         }
 
         return reset($items);
+    }
+
+
+    /**
+     * Prepares for building SQL.
+     * This method is called by [[QueryBuilder]] when it starts to build SQL from a query object.
+     * You may override this method to do some final preparation work when converting a query into a SQL statement.
+     * @param ActiveResourceQuery $builder
+     */
+    public function prepare()
+    {
+        if ($this->primaryModel === null) {
+            return;
+        } else {
+            // lazy loading of a relation
+            $this->filterByModels([$this->primaryModel]);
+        }
     }
 
     /**
@@ -432,5 +447,9 @@ class ActiveResourceQuery extends ResourceQuery implements ActiveResourceQueryIn
         }
 
         return $relations;
+    }
+
+    private function isPopulated($rows) {
+        return $rows[0] instanceof ActiveResource;
     }
 }

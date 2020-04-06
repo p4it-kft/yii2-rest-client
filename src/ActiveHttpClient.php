@@ -31,6 +31,8 @@ class ActiveHttpClient extends Component {
     }
 
     public function buildUrl(ActiveResourceQuery $resourceQuery) {
+        $resourceQuery->prepare();
+        
         /* @var $modelClass ActiveResource */
         $modelClass = $resourceQuery->modelClass;
 
@@ -38,24 +40,28 @@ class ActiveHttpClient extends Component {
             $modelClass::resourceName()
         ];
 
-        if($resourceQuery->select) {
+        if($resourceQuery->select !== null) {
             $url[$resourceQuery->fieldParam] = implode(',',$resourceQuery->select);
         }
 
-        if($resourceQuery->where) {
+        if($resourceQuery->where !== null) {
             $url[$resourceQuery->filterParam] = $resourceQuery->where;
         }
 
-        if($resourceQuery->perPage) {
+        if($resourceQuery->perPage !== null) {
             $url[$resourceQuery->perPageParam] = $resourceQuery->perPage;
         }
 
-        if($resourceQuery->expand) {
+        if($resourceQuery->expand !== null) {
             $url[$resourceQuery->expandParam] = implode(',', $resourceQuery->expand);
         }
 
-        if($resourceQuery->orderBy) {
+        if($resourceQuery->orderBy !== null) {
             $url[$resourceQuery->sortParam] = implode(',', $resourceQuery->orderBy);
+        }
+
+        if($resourceQuery->limit !== null) {
+            throw new \InvalidArgumentException('Limit is not implemented yet');
         }
 
         //debug session
