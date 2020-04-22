@@ -64,9 +64,6 @@ class ActiveHttpClient extends Component {
             throw new \InvalidArgumentException('Limit is not implemented yet');
         }
 
-        //debug session
-        $url['XDEBUG_SESSION_START'] = '14098';
-
         return $url;
     }
 
@@ -78,9 +75,6 @@ class ActiveHttpClient extends Component {
             $modelClass::resourceName().'/'.implode(',',$primaryKeys)
         ];
 
-        //debug session
-        $url['XDEBUG_SESSION_START'] = '14098';
-
         return $url;
     }
 
@@ -91,9 +85,6 @@ class ActiveHttpClient extends Component {
         $url = [
             $modelClass::resourceName()
         ];
-
-        //debug session
-        $url['XDEBUG_SESSION_START'] = '14098';
 
         return $url;
     }
