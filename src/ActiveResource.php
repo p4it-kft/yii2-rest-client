@@ -2,10 +2,12 @@
 namespace p4it\rest\client;
 
 use Yii;
+use yii\base\Event;
 use yii\base\InvalidConfigException;
 use yii\helpers\Inflector;
 use yii\helpers\StringHelper;
 use yii\httpclient\Client;
+use yii\httpclient\Request;
 
 /**
  * User: papppeter
@@ -15,6 +17,8 @@ use yii\httpclient\Client;
 
 abstract class ActiveResource extends BaseActiveResource {
 
+    public const EVENT_AFTER_GET_CLIENT = 'afterGetClient';
+    
     /**
      * Declares the name of the resource.
      * By default this method returns the class name as the resource name
@@ -63,7 +67,14 @@ abstract class ActiveResource extends BaseActiveResource {
         /** @var ActiveHttpClient $client */
         $client = Yii::$app->get('httpClient');
 
+        self::afterGetClient($client);
         return $client;
+    }
+
+    public static function afterGetClient(ActiveHttpClient $client) {
+        Event::trigger(static::class, self::EVENT_AFTER_GET_CLIENT, new AfterGetClientEvent([
+            'client' => $client,
+        ]));
     }
 
 

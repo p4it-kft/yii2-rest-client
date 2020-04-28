@@ -1,7 +1,6 @@
 <?php
 namespace p4it\rest\client;
 
-use yii\base\BaseObject;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 use yii\httpclient\Client;
@@ -12,8 +11,8 @@ use yii\httpclient\Request;
  * Date: 13/09/2019
  * Time: 15:36
  */
-
-class ActiveHttpClient extends Component {
+class ActiveHttpClient extends Component
+{
 
     /**
      * @var Client
@@ -24,15 +23,34 @@ class ActiveHttpClient extends Component {
      * @return Request
      * @throws InvalidConfigException
      */
-    public function createRequest() {
-        /** @var Client $client */
-        $client = \Yii::createObject($this->client);
-        return $client->createRequest();
+    public function createRequest()
+    {
+        return $this->getClientImmutable()->createRequest();
     }
 
-    public function buildUrl(ActiveResourceQuery $resourceQuery) {
-        $resourceQuery->prepare();
+    /**
+     * @return Client
+     * @throws InvalidConfigException
+     */
+    public function getClientImmutable()
+    {
+        return clone $this->getClient();
+    }
+
+    /**
+     * @return Client
+     * @throws InvalidConfigException
+     */
+    public function getClient()
+    {
+        if(!is_object($this->client)) {
+            $this->client = \Yii::createObject($this->client);
+        }
+        return $this->client;
+    }
         
+    public function buildUrl(ActiveResourceQuery $resourceQuery)
+    {
         /* @var $modelClass ActiveResource */
         $modelClass = $resourceQuery->modelClass;
 
@@ -67,7 +85,8 @@ class ActiveHttpClient extends Component {
         return $url;
     }
 
-    public function buildUpdateOneUrl(ActiveResourceQuery $resourceQuery, $primaryKeys) {
+    public function buildUpdateOneUrl(ActiveResourceQuery $resourceQuery, $primaryKeys)
+    {
         /* @var $modelClass ActiveResource */
         $modelClass = $resourceQuery->modelClass;
 
@@ -78,7 +97,8 @@ class ActiveHttpClient extends Component {
         return $url;
     }
 
-    public function buildInsertUrl(ActiveResourceQuery $resourceQuery) {
+    public function buildInsertUrl(ActiveResourceQuery $resourceQuery)
+    {
         /* @var $modelClass ActiveResource */
         $modelClass = $resourceQuery->modelClass;
 
