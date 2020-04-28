@@ -160,7 +160,7 @@ class ActiveResourceQuery extends ResourceQuery implements ActiveResourceQueryIn
             $items[] = $item;
         }
 
-        return $this->populate($items);
+        return $items;
     }
 
     /**
