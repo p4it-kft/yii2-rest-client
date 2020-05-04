@@ -51,6 +51,8 @@ class ActiveHttpClient extends Component
         
     public function buildUrl(ActiveResourceQuery $resourceQuery)
     {
+        $resourceQuery->prepare();
+        
         /* @var $modelClass ActiveResource */
         $modelClass = $resourceQuery->modelClass;
 
