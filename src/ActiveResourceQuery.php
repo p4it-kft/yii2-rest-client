@@ -7,6 +7,7 @@ use ReflectionException;
 use ReflectionMethod;
 use yii\base\InvalidConfigException;
 use yii\db\Connection;
+use yii\helpers\VarDumper;
 use yii\httpclient\Client;
 use yii\httpclient\Exception;
 use yii\httpclient\Request;
@@ -375,7 +376,7 @@ class ActiveResourceQuery extends ResourceQuery implements ActiveResourceQueryIn
             $response = $request->send();
             if (!$response->isOk) {
                 \Yii::error($response->getContent());
-                throw new BadResponseException($response, $response->getContent(), $response->getStatusCode());
+                throw new BadResponseException($response, $response->toString(), $response->getStatusCode());
             }
             /** @var ActiveResponse $data */
             $data = $response->getData();

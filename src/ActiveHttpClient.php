@@ -1,54 +1,16 @@
 <?php
 namespace p4it\rest\client;
 
-use yii\base\Component;
-use yii\base\InvalidConfigException;
 use yii\httpclient\Client;
-use yii\httpclient\Request;
 
 /**
  * User: papppeter
  * Date: 13/09/2019
  * Time: 15:36
  */
-class ActiveHttpClient extends Component
+class ActiveHttpClient extends Client
 {
 
-    /**
-     * @var Client
-     */
-    public $client;
-
-    /**
-     * @return Request
-     * @throws InvalidConfigException
-     */
-    public function createRequest()
-    {
-        return $this->getClientImmutable()->createRequest();
-    }
-
-    /**
-     * @return Client
-     * @throws InvalidConfigException
-     */
-    public function getClientImmutable()
-    {
-        return clone $this->getClient();
-    }
-
-    /**
-     * @return Client
-     * @throws InvalidConfigException
-     */
-    public function getClient()
-    {
-        if(!is_object($this->client)) {
-            $this->client = \Yii::createObject($this->client);
-        }
-        return $this->client;
-    }
-        
     public function buildUrl(ActiveResourceQuery $resourceQuery)
     {
         $resourceQuery->prepare();
@@ -110,5 +72,4 @@ class ActiveHttpClient extends Component
 
         return $url;
     }
-
 }
