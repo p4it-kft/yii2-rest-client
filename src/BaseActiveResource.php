@@ -136,6 +136,13 @@ abstract class BaseActiveResource extends Model implements ActiveResourceInterfa
     protected static function findByCondition($condition)
     {
         $query = static::find();
+        
+        array_walk_recursive($condition, static function(&$value) {
+            if ($value === null) {
+                $value = 'null';
+            }
+        });
+
 
         if (!ArrayHelper::isAssociative($condition)) {
             // query by primary key
