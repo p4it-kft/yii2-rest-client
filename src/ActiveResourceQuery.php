@@ -184,7 +184,9 @@ class ActiveResourceQuery extends ResourceQuery implements ActiveResourceQueryIn
         $models = $this->createModels($rows);
 
         if ($this->expand) {
-            $this->findExpand($this->expand, $models, $rows);
+            $primaryModel = reset($models);
+            $expands = array_filter($this->expand, fn ($expand) => !$primaryModel->hasAttribute($expand));
+            $this->findExpand($expands, $models, $rows);
         }
 
         if (!$this->asArray) {
