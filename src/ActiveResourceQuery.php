@@ -220,6 +220,10 @@ class ActiveResourceQuery extends ResourceQuery implements ActiveResourceQueryIn
             $items[] = $item;
             break;
         }
+        
+        if(!$items) {
+            return null;
+        }
 
         return reset($items);
     }
