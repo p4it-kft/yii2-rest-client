@@ -381,7 +381,6 @@ class ActiveResourceQuery extends ResourceQuery implements ActiveResourceQueryIn
         do {
             $response = $request->send();
             if (!$response->isOk) {
-                \Yii::error($response->getContent());
                 throw new BadResponseException($response, $response->toString(), $response->getStatusCode());
             }
             /** @var ActiveResponse $data */
